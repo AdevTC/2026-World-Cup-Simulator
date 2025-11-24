@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* <--- CAMBIO NUEVO: Ocultar flechas de input number en todos los navegadores */
+@layer base {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+  }
+}
+
+/* Clases para impresión */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  @page { margin: 1cm; size: A4; }
+}
