@@ -4,6 +4,23 @@ export const TROPHY_URL = "https://png.pngtree.com/png-vector/20250206/ourmid/pn
 
 export const PAST_CHAMPIONS = ['Italia', 'Uruguay', 'Argentina', 'Brasil', 'España', 'Inglaterra', 'Alemania', 'Francia'];
 
+// <--- CAMBIO NUEVO: Configuración para el Sorteo Real (Rellenar el 5 de Diciembre)
+// Usa los IDs de los repechajes ('uefa-a', 'inter-1', etc.) para los ganadores de playoff.
+export const REAL_GROUPS_CONFIG = {
+  A: ['México', 'TeamA2', 'TeamA3', 'TeamA4'],
+  B: ['Canadá', 'TeamB2', 'TeamB3', 'TeamB4'],
+  C: ['TeamC1', 'TeamC2', 'TeamC3', 'TeamC4'],
+  D: ['EE. UU.', 'TeamD2', 'TeamD3', 'TeamD4'],
+  E: ['TeamE1', 'TeamE2', 'TeamE3', 'TeamE4'],
+  F: ['TeamF1', 'TeamF2', 'TeamF3', 'TeamF4'],
+  G: ['TeamG1', 'TeamG2', 'TeamG3', 'TeamG4'],
+  H: ['TeamH1', 'TeamH2', 'TeamH3', 'TeamH4'],
+  I: ['TeamI1', 'TeamI2', 'TeamI3', 'TeamI4'],
+  J: ['TeamJ1', 'TeamJ2', 'TeamJ3', 'TeamJ4'],
+  K: ['TeamK1', 'TeamK2', 'TeamK3', 'TeamK4'],
+  L: ['TeamL1', 'TeamL2', 'TeamL3', 'TeamL4'],
+};
+
 export const FLAGS = {
   'México': 'mx', 'Canadá': 'ca', 'EE. UU.': 'us',
   'Argentina': 'ar', 'Francia': 'fr', 'Brasil': 'br', 'Inglaterra': 'gb-eng',

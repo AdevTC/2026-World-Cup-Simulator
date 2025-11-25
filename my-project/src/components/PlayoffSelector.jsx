@@ -8,6 +8,8 @@ export const PlayoffSelector = ({ onComplete, darkMode }) => {
   const handleSelect = (id, winner) => {
     setSelections(prev => ({ ...prev, [id]: winner }));
   };
+  
+  // Verificar si todo está seleccionado
   const isComplete = [...PLAYOFFS_DATA.uefa, ...PLAYOFFS_DATA.inter].every(p => selections[p.id]);
 
   return (
@@ -37,7 +39,8 @@ export const PlayoffSelector = ({ onComplete, darkMode }) => {
         ))}
       </div>
       <div className="text-center">
-        <button disabled={!isComplete} onClick={() => onComplete(Object.values(selections))}
+        {/* <--- CAMBIO NUEVO: Devolvemos el objeto 'selections' completo, no solo los valores */}
+        <button disabled={!isComplete} onClick={() => onComplete(selections)}
           className={`px-8 py-3 rounded-full font-bold text-lg shadow-lg transition-all transform hover:scale-105 ${
             isComplete ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
           Confirmar y Sortear Mundial

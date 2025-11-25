@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, Play } from 'lucide-react';
+import { User, Play, Shuffle, CalendarCheck } from 'lucide-react'; // Importa iconos nuevos
 import { TROPHY_URL } from './data/constants';
-import { generateStructure, generateMatches, generateKnockoutBracket, getBestThirdsList, simulateMatchResult } from './utils/logic';
+import { generateStructure, generateRealStructure, generateMatches, generateKnockoutBracket, getBestThirdsList, simulateMatchResult } from './utils/logic';
 import { Header } from './components/Header';
 import { PlayoffSelector } from './components/PlayoffSelector';
 import { GroupStage } from './components/GroupStage';
@@ -12,6 +12,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [userName, setUserName] = useState('');
   const [view, setView] = useState('landing');
+  const [simulationMode, setSimulationMode] = useState('random'); // 'random' | 'real'
   const [groups, setGroups] = useState(null);
   const [matches, setMatches] = useState(null);
   
@@ -21,22 +22,40 @@ export default function App() {
   const [winner, setWinner] = useState(null);
 
   const [awards, setAwards] = useState({
-    bestPlayer: '',
-    bestKeeper: '',
-    bestYoung: '',
-    bestGoal: '',
-    fairPlay: '',
-    topScorer: { name: '', count: '' },
-    topAssister: { name: '', count: '' },
-    topGA: { name: '', count: '' }
+    bestPlayer: { name: '', team: '' },
+    bestKeeper: { name: '', team: '' },
+    bestYoung: { name: '', team: '' },
+    bestGoal: { name: '', team: '' },
+    fairPlay: '', 
+    topScorer: { name: '', team: '', count: '' },
+    topAssister: { name: '', team: '', count: '' },
+    topGA: { name: '', team: '', count: '' }
   });
 
+  // <--- CAMBIO NUEVO: Lógica de fecha para el botón
+  const isRealDrawEnabled = new Date() >= new Date('2025-12-05');
+
   const handleStart = () => {
-      if(userName.trim().length > 0) setView('config');
+      if(userName.trim().length > 0) setView('mode_select'); // Vamos a seleccionar modo
   };
 
-  const runDraw = (playoffWinners) => {
-    const rawGroups = generateStructure(playoffWinners);
+  // <--- CAMBIO NUEVO: Función para elegir modo
+  const selectMode = (mode) => {
+      setSimulationMode(mode);
+      setView('config'); // Pasamos a elegir repechajes (siempre necesario)
+  };
+
+  const runDraw = (playoffSelections) => {
+    let rawGroups;
+    
+    // <--- CAMBIO NUEVO: Elegir algoritmo según modo
+    if (simulationMode === 'real') {
+        rawGroups = generateRealStructure(playoffSelections);
+    } else {
+        // Para modo random, necesitamos solo la lista de ganadores para el bombo 4
+        rawGroups = generateStructure(Object.values(playoffSelections));
+    }
+
     setGroups(rawGroups);
     setMatches(generateMatches(rawGroups));
     setView('groups');
@@ -228,10 +247,46 @@ export default function App() {
                 disabled={userName.trim().length === 0}
                 className={`group relative px-8 py-4 rounded-full font-bold text-xl shadow-xl transition-all ${userName.trim().length > 0 ? 'bg-blue-600 hover:bg-blue-500 hover:scale-105 text-white' : 'bg-gray-500 opacity-50 cursor-not-allowed text-gray-300'}`}>
                <div className="flex items-center gap-3">
-                 <Play size={24} fill="currentColor" /> COMENZAR SIMULACIÓN
+                 <Play size={24} fill="currentColor" /> SIGUIENTE
                </div>
             </button>
          </div>
+      )}
+
+      {/* <--- CAMBIO NUEVO: Pantalla de Selección de Modo */}
+      {view === 'mode_select' && (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] gap-8 p-4 animate-fade-in">
+              <h2 className="text-4xl font-black mb-4">Elige tu Simulación</h2>
+              <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full">
+                  
+                  {/* Opción Aleatoria */}
+                  <button onClick={() => selectMode('random')} className={`p-8 rounded-2xl border-2 flex flex-col items-center gap-4 transition-all hover:scale-105 ${darkMode ? 'bg-slate-900 border-blue-500 hover:bg-slate-800' : 'bg-white border-blue-500 hover:bg-blue-50 shadow-lg'}`}>
+                      <div className="bg-blue-100 p-4 rounded-full text-blue-600">
+                          <Shuffle size={48} />
+                      </div>
+                      <h3 className="text-2xl font-bold">Sorteo Aleatorio</h3>
+                      <p className="opacity-70 text-center">Simula un sorteo nuevo basado en los bombos oficiales de la FIFA.</p>
+                  </button>
+
+                  {/* Opción Real */}
+                  <button 
+                      onClick={() => isRealDrawEnabled && selectMode('real')} 
+                      disabled={!isRealDrawEnabled}
+                      className={`relative p-8 rounded-2xl border-2 flex flex-col items-center gap-4 transition-all ${isRealDrawEnabled ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed grayscale'} ${darkMode ? 'bg-slate-900 border-green-500' : 'bg-white border-green-500 shadow-lg'}`}
+                  >
+                      {!isRealDrawEnabled && (
+                          <div className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                              Disponible 5 Dic
+                          </div>
+                      )}
+                      <div className="bg-green-100 p-4 rounded-full text-green-600">
+                          <CalendarCheck size={48} />
+                      </div>
+                      <h3 className="text-2xl font-bold">Sorteo Oficial</h3>
+                      <p className="opacity-70 text-center">Usa los grupos reales definidos en el sorteo del 5 de Diciembre.</p>
+                  </button>
+              </div>
+          </div>
       )}
 
       {view === 'config' && <PlayoffSelector onComplete={runDraw} darkMode={darkMode} />}
@@ -250,6 +305,7 @@ export default function App() {
       {view === 'knockout' && bracket && (
         <KnockoutStage 
            bracket={bracket} 
+           groups={groups}
            updateMatch={updateBracketMatch} 
            darkMode={darkMode} 
            winner={winner}
@@ -267,7 +323,7 @@ export default function App() {
           groups={groups} 
           bracket={bracket} 
           winner={winner} 
-          thirdPlace={thirdPlace} // <--- NUEVO: Pasamos el tercer puesto
+          thirdPlace={thirdPlace}
           userName={userName}
           awards={awards}
           onBack={() => setView('knockout')} 
