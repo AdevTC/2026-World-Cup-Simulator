@@ -20,7 +20,6 @@ export default function App() {
   const [thirdPlace, setThirdPlace] = useState(null);
   const [winner, setWinner] = useState(null);
 
-  // <--- CAMBIO NUEVO: Estado para los premios
   const [awards, setAwards] = useState({
     bestPlayer: '',
     bestKeeper: '',
@@ -268,6 +267,7 @@ export default function App() {
           groups={groups} 
           bracket={bracket} 
           winner={winner} 
+          thirdPlace={thirdPlace} // <--- NUEVO: Pasamos el tercer puesto
           userName={userName}
           awards={awards}
           onBack={() => setView('knockout')} 
