@@ -4,8 +4,39 @@ export const TROPHY_URL = "https://png.pngtree.com/png-vector/20250206/ourmid/pn
 
 export const PAST_CHAMPIONS = ['Italia', 'Uruguay', 'Argentina', 'Brasil', 'España', 'Inglaterra', 'Alemania', 'Francia'];
 
-// <--- CAMBIO NUEVO: Configuración para el Sorteo Real (Rellenar el 5 de Diciembre)
-// Usa los IDs de los repechajes ('uefa-a', 'inter-1', etc.) para los ganadores de playoff.
+// Sedes Oficiales 2026 para fases finales
+export const VENUES = {
+    final: "MetLife Stadium, New York/New Jersey",
+    sf: ["AT&T Stadium, Dallas", "Mercedes-Benz Stadium, Atlanta"],
+    qf: ["Arrowhead Stadium, Kansas City", "Gillette Stadium, Boston", "SoFi Stadium, Los Angeles", "Hard Rock Stadium, Miami"],
+    third: "Hard Rock Stadium, Miami"
+};
+
+// Ranking FIFA (Puntos exactos proporcionados)
+// Usamos un valor por defecto de 1200 para equipos no listados o repechajes genéricos
+export const TEAM_STATS = {
+    'España': 1877, 'Argentina': 1873, 'Francia': 1870, 'Inglaterra': 1834,
+    'Brasil': 1760, 'Portugal': 1760, 'Países Bajos': 1756, 'Bélgica': 1730,
+    'Alemania': 1724, 'Croacia': 1716, 'Marruecos': 1713, 'Italia': 1702,
+    'Colombia': 1701, 'EE. UU.': 1681, 'México': 1675, 'Uruguay': 1672,
+    'Suiza': 1654, 'Japón': 1650, 'Senegal': 1648, 'Irán': 1617,
+    'Dinamarca': 1616, 'Corea del Sur': 1599, 'Ecuador': 1591, 'Austria': 1585,
+    'Turquía': 1582, 'Australia': 1574, 'Canadá': 1559, 'Ucrania': 1557,
+    'Noruega': 1553, 'Panamá': 1540, 'Polonia': 1532, 'Gales': 1529,
+    'Rusia': 1524, 'Egipto': 1520, 'Argelia': 1516, 'Escocia': 1506,
+    'Nigeria': 1502, 'Paraguay': 1501, 'Túnez': 1497, 'Costa de Marfil': 1489,
+    'Suecia': 1487, 'República Checa': 1487, 'Eslovaquia': 1485, 'Rumania': 1465,
+    'Costa Rica': 1464, 'Uzbekistán': 1462, 'Qatar': 1461, 'Perú': 1459,
+    'Chile': 1457, 'R.D. del Congo': 1442, 'Iraq': 1438, 'Arabia Saudita': 1428,
+    'Sudáfrica': 1426, 'Albania': 1401, 'Macedonia del Norte': 1378, 'Jordania': 1377,
+    'Cabo Verde': 1367, 'Irlanda del Norte': 1366, 'Jamaica': 1362, 'Bosnia': 1362,
+    'Ghana': 1351, 'Bolivia': 1329, 'Kosovo': 1308, 'Curazao': 1302,
+    'Haití': 1294, 'Nueva Zelanda': 1279, 'Suriname': 1140, 'Nueva Caledonia': 1042,
+    // Valores por defecto para placeholders o equipos faltantes en el top
+    'Irlanda': 1436, 
+};
+
+// <--- Configuración para el Sorteo Real (Rellenar el 5 de Diciembre)
 export const REAL_GROUPS_CONFIG = {
   A: ['México', 'TeamA2', 'TeamA3', 'TeamA4'],
   B: ['Canadá', 'TeamB2', 'TeamB3', 'TeamB4'],

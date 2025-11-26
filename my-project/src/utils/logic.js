@@ -1,4 +1,4 @@
-import { POTS_BASE, REAL_GROUPS_CONFIG } from '../data/constants';
+import { POTS_BASE, REAL_GROUPS_CONFIG, TEAM_STATS } from '../data/constants';
 
 export const statsInit = () => ({ played: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 });
 
@@ -13,7 +13,6 @@ export const getBestThirdsList = (groups) => {
   return thirds.slice(0, 8);
 };
 
-// Sorteo Aleatorio (Lógica original)
 export const generateStructure = (playoffWinners) => {
   const pot1 = [...POTS_BASE.pot1];
   const pot2 = [...POTS_BASE.pot2]; 
@@ -45,22 +44,17 @@ export const generateStructure = (playoffWinners) => {
   return groups;
 };
 
-// <--- CAMBIO NUEVO: Sorteo Real (Usa la config y los playoffs seleccionados)
 export const generateRealStructure = (playoffSelections) => {
   const groups = {};
-  const letters = Object.keys(REAL_GROUPS_CONFIG); // A, B, C...
+  const letters = Object.keys(REAL_GROUPS_CONFIG);
 
   letters.forEach(l => {
-    const teamNames = REAL_GROUPS_CONFIG[l]; // Array de 4 equipos (o IDs)
-    
+    const teamNames = REAL_GROUPS_CONFIG[l];
     groups[l] = teamNames.map((teamOrId, idx) => {
-        // Si el nombre es un ID de playoff (ej: 'uefa-a'), lo reemplazamos por el ganador elegido
-        // Si no, usamos el nombre tal cual
         const finalName = playoffSelections[teamOrId] || teamOrId;
-        
         return { 
             name: finalName, 
-            pot: idx + 1, // Asumimos que el orden en REAL_GROUPS_CONFIG es por bombos 1-4
+            pot: idx + 1,
             ...statsInit() 
         };
     });
@@ -85,12 +79,50 @@ export const generateMatches = (grp) => {
     return m;
 };
 
-export const simulateMatchResult = () => {
-    const sA = Math.floor(Math.random() * 4);
-    const sB = Math.floor(Math.random() * 4);
-    let penA = '', penB = '';
+// <--- CAMBIO NUEVO: Simulación Inteligente Basada en Ranking FIFA
+export const simulateMatchResult = (teamA, teamB) => {
+    // Obtener puntos, default 1200 si no existe
+    const pointsA = TEAM_STATS[teamA] || 1200;
+    const pointsB = TEAM_STATS[teamB] || 1200;
     
+    const diff = pointsA - pointsB;
+    
+    // Factor de escala: 400 puntos de diferencia = ~90% de probabilidad de ganar para el fuerte
+    // Usamos una función sigmoide logística simple
+    const probA = 1 / (1 + Math.pow(10, -diff / 400));
+    
+    // Determinar ganador basado en probabilidad + aleatoriedad
+    // Esto permite sorpresas si el random es muy alto/bajo
+    const rand = Math.random();
+    const winnerA = rand < probA; // Si rand cae dentro de la prob de A, gana A
+
+    // Generar goles
+    // El ganador suele marcar entre 1 y 4 goles
+    // El perdedor entre 0 y 2 (pero menos que el ganador)
+    let sA, sB;
+    
+    if (winnerA) {
+        sA = Math.floor(Math.random() * 3) + 1; // 1 a 3
+        sB = Math.floor(Math.random() * Math.min(sA, 3)); // 0 a sA-1
+        // Pequeña chance de goleada si hay mucha diferencia
+        if (diff > 300 && Math.random() > 0.7) sA += 2;
+    } else {
+        sB = Math.floor(Math.random() * 3) + 1;
+        sA = Math.floor(Math.random() * Math.min(sB, 3));
+        if (diff < -300 && Math.random() > 0.7) sB += 2;
+    }
+
+    // Empates: En fase de grupos (si no se pide penales) son posibles
+    // Pero esta función se usa a menudo en Knockout donde debe haber ganador.
+    // Si se usa en grupos, el empate ocurre si probA está cerca de 0.5 y rand también.
+    // Aquí simplificamos forzando un resultado, el componente gestiona empates si son validos.
+    
+    let penA = '', penB = '';
+    let isExtraTime = false;
+
+    // Lógica de empate forzado para simulación simple
     if (sA === sB) {
+        // En knockout, desempatar por penales
         let pA = 0, pB = 0;
         while(pA === pB) {
             pA = Math.floor(Math.random() * 5) + 3;
@@ -98,9 +130,10 @@ export const simulateMatchResult = () => {
         }
         penA = pA;
         penB = pB;
+        isExtraTime = true;
     }
 
-    return { scoreA: sA, scoreB: sB, penA, penB, isExtraTime: sA === sB };
+    return { scoreA: sA, scoreB: sB, penA, penB, isExtraTime };
 };
 
 export const generateKnockoutBracket = (groups, bestThirds) => {
