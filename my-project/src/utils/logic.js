@@ -79,58 +79,65 @@ export const generateMatches = (grp) => {
     return m;
 };
 
-// <--- CAMBIO NUEVO: Simulación Inteligente Basada en Ranking FIFA
+// <--- CAMBIO CLAVE: Lógica de Empates y Penaltis
 export const simulateMatchResult = (teamA, teamB) => {
-    // Obtener puntos, default 1200 si no existe
-    const pointsA = TEAM_STATS[teamA] || 1200;
-    const pointsB = TEAM_STATS[teamB] || 1200;
+    const pointsA = TEAM_STATS[teamA] || 1300;
+    const pointsB = TEAM_STATS[teamB] || 1300;
     
+    // Diferencia de nivel
     const diff = pointsA - pointsB;
     
-    // Factor de escala: 400 puntos de diferencia = ~90% de probabilidad de ganar para el fuerte
-    // Usamos una función sigmoide logística simple
+    // Probabilidad base de victoria A (sigmoide)
     const probA = 1 / (1 + Math.pow(10, -diff / 400));
     
-    // Determinar ganador basado en probabilidad + aleatoriedad
-    // Esto permite sorpresas si el random es muy alto/bajo
-    const rand = Math.random();
-    const winnerA = rand < probA; // Si rand cae dentro de la prob de A, gana A
-
-    // Generar goles
-    // El ganador suele marcar entre 1 y 4 goles
-    // El perdedor entre 0 y 2 (pero menos que el ganador)
+    // Probabilidad de empate: Mayor si la diferencia es pequeña
+    // Base 28% de empate, se reduce si hay mucha diferencia
+    const drawChance = 0.28 * Math.max(0, 1 - Math.abs(diff) / 600); 
+    
+    const roll = Math.random();
+    
     let sA, sB;
-    
-    if (winnerA) {
-        sA = Math.floor(Math.random() * 3) + 1; // 1 a 3
-        sB = Math.floor(Math.random() * Math.min(sA, 3)); // 0 a sA-1
-        // Pequeña chance de goleada si hay mucha diferencia
-        if (diff > 300 && Math.random() > 0.7) sA += 2;
-    } else {
-        sB = Math.floor(Math.random() * 3) + 1;
-        sA = Math.floor(Math.random() * Math.min(sB, 3));
-        if (diff < -300 && Math.random() > 0.7) sB += 2;
-    }
-
-    // Empates: En fase de grupos (si no se pide penales) son posibles
-    // Pero esta función se usa a menudo en Knockout donde debe haber ganador.
-    // Si se usa en grupos, el empate ocurre si probA está cerca de 0.5 y rand también.
-    // Aquí simplificamos forzando un resultado, el componente gestiona empates si son validos.
-    
-    let penA = '', penB = '';
     let isExtraTime = false;
+    let penA = '', penB = '';
 
-    // Lógica de empate forzado para simulación simple
-    if (sA === sB) {
-        // En knockout, desempatar por penales
+    if (roll < drawChance) {
+        // --- EMPATE ---
+        // Generar marcador de empate (0-0, 1-1, 2-2)
+        const goals = Math.floor(Math.random() * 3); // 0, 1 o 2
+        sA = goals;
+        sB = goals;
+        isExtraTime = true; // Se activa la bandera de PRÓRROGA
+
+        // Simular PENALTIS
         let pA = 0, pB = 0;
-        while(pA === pB) {
-            pA = Math.floor(Math.random() * 5) + 3;
-            pB = Math.floor(Math.random() * 5) + 3;
+        // Tanda de 5
+        for(let i=0; i<5; i++) {
+            if(Math.random() > 0.2) pA++;
+            if(Math.random() > 0.2) pB++;
+        }
+        // Muerte súbita si siguen empatados
+        while (pA === pB) {
+            if(Math.random() > 0.2) pA++;
+            if(Math.random() > 0.2) pB++;
         }
         penA = pA;
         penB = pB;
-        isExtraTime = true;
+
+    } else {
+        // --- VICTORIA (Sin empate) ---
+        // Recalcular probabilidad A excluyendo el rango de empate
+        const adjustedProbA = probA; // Simplificación, A sigue siendo favorito
+        
+        // Determinar quién gana en 90mins/120mins
+        const winnerIsA = Math.random() < adjustedProbA;
+        
+        if (winnerIsA) {
+            sA = Math.floor(Math.random() * 3) + 1; // 1 a 3 goles
+            sB = Math.floor(Math.random() * sA);    // Menos que A
+        } else {
+            sB = Math.floor(Math.random() * 3) + 1;
+            sA = Math.floor(Math.random() * sB);
+        }
     }
 
     return { scoreA: sA, scoreB: sB, penA, penB, isExtraTime };

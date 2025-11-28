@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TROPHY_URL } from '../data/constants';
 import { Flag } from './ui/Flag';
 import { getBestThirdsList } from '../utils/logic';
-import { Trophy, Award, Calendar, ListOrdered, Shield, ShieldAlert, BarChart3 } from 'lucide-react';
+import { Trophy, Award, Calendar, ListOrdered, Shield, ShieldAlert, BarChart3, Printer, ArrowLeft } from 'lucide-react';
 
 export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userName, awards }) => {
   const [date] = useState(new Date());
   
-  useEffect(() => { 
-      const timer = setTimeout(() => window.print(), 800); 
-      return () => clearTimeout(timer);
-  }, []);
-
   const qualifiedThirds = useMemo(() => getBestThirdsList(groups), [groups]);
 
-  // --- CÁLCULO DE ESTADÍSTICAS AUTOMÁTICAS ---
   const tournamentStats = useMemo(() => {
     const stats = {}; 
 
@@ -53,12 +47,27 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
   
   const thirdWinner = thirdPlace?.winner;
 
+  const handlePrint = () => {
+      window.print();
+  };
+
   return (
     <div className="absolute top-0 left-0 w-full min-h-screen bg-white text-slate-900 font-sans print-container">
       
-      <button onClick={onBack} className="fixed top-6 right-6 bg-black text-white px-6 py-3 rounded-full shadow-2xl font-bold z-50 hover:scale-105 transition no-print flex items-center gap-2">
-          ← Volver
-      </button>
+      <div className="fixed top-6 right-6 z-50 flex gap-3 no-print">
+          <button 
+            onClick={handlePrint} 
+            className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold hover:scale-105 transition flex items-center gap-2 border-2 border-white"
+          >
+              <Printer size={20} /> Imprimir / Guardar PDF
+          </button>
+          <button 
+            onClick={onBack} 
+            className="bg-black text-white px-6 py-3 rounded-full shadow-2xl font-bold hover:scale-105 transition flex items-center gap-2 border-2 border-white"
+          >
+              <ArrowLeft size={20} /> Volver
+          </button>
+      </div>
 
       {/* ================= PÁGINA 1: GRUPOS ================= */}
       <div className="print-page p-8 max-w-[210mm] mx-auto relative bg-white">
@@ -175,7 +184,6 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                     </div>
                 </div>
 
-                {/* BLOQUE GRAN FINAL */}
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
                     <h4 className="text-xs font-black uppercase tracking-widest mb-3">Gran Final</h4>
                     {bracket.final.map((m, i) => (
@@ -193,8 +201,6 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                                     <p className="font-black text-sm">{m.teamB?.name}</p>
                                 </div>
                             </div>
-                            
-                            {/* <--- CAMBIO NUEVO: Detalles Extra en Final */}
                             {(m.isExtraTime || (m.penA && m.penB)) && (
                                 <div className="text-[9px] font-mono text-gray-500 mt-1 flex gap-2 justify-center">
                                     {m.isExtraTime && <span>(ET)</span>}
@@ -223,9 +229,8 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
             <h2 className="text-3xl font-black uppercase tracking-tighter">Cuadro de Honor</h2>
         </div>
 
-        {/* PODIO DEL TORNEO */}
+        {/* PODIO */}
         <div className="grid grid-cols-3 gap-4 mb-10 items-end text-center">
-            {/* SUBCAMPEÓN */}
             <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm order-1 translate-y-4">
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Subcampeón</div>
                 {runnerUp && <Flag name={runnerUp.name} size="w-16 h-10 shadow-md mx-auto mb-2" />}
@@ -233,7 +238,6 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                 <div className="inline-block bg-gray-200 text-gray-700 text-[9px] font-bold px-2 py-0.5 rounded mt-1">2º Lugar</div>
             </div>
 
-            {/* CAMPEÓN */}
             <div className="p-6 bg-gradient-to-b from-yellow-50 to-white rounded-xl border-2 border-yellow-400 shadow-lg order-2 relative z-10">
                 <div className="text-xs font-black text-yellow-600 uppercase tracking-widest mb-3">Campeón del Mundo</div>
                 {winner && <Flag name={winner.name} size="w-24 h-16 shadow-xl mx-auto mb-4" />}
@@ -241,7 +245,6 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                 <div className="inline-block bg-yellow-400 text-yellow-900 text-[10px] font-black px-3 py-1 rounded mt-1">1º Lugar</div>
             </div>
 
-            {/* TERCERO */}
             <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm order-3 translate-y-6">
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tercer Lugar</div>
                 {thirdWinner && <Flag name={thirdWinner.name} size="w-14 h-9 shadow-md mx-auto mb-2" />}
@@ -253,17 +256,17 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
         <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="space-y-3">
                 <h3 className="font-black text-sm uppercase border-b-2 border-black pb-1 mb-2">Premios</h3>
-                <AwardCard title="Balón de Oro" value={awards.bestPlayer} />
-                <AwardCard title="Guante de Oro" value={awards.bestKeeper} />
-                <AwardCard title="Mejor Joven" value={awards.bestYoung} />
-                <AwardCard title="Mejor Gol" value={awards.bestGoal} />
+                <AwardCard title="Balón de Oro" data={awards.bestPlayer} />
+                <AwardCard title="Guante de Oro" data={awards.bestKeeper} />
+                <AwardCard title="Mejor Joven" data={awards.bestYoung} />
+                <AwardCard title="Mejor Gol" data={awards.bestGoal} />
             </div>
 
             <div className="space-y-3">
                 <h3 className="font-black text-sm uppercase border-b-2 border-black pb-1 mb-2">Estadísticas</h3>
-                <StatCard label="Bota de Oro" player={awards.topScorer.name} value={awards.topScorer.count} unit="Goles" />
-                <StatCard label="Máx. Asistente" player={awards.topAssister.name} value={awards.topAssister.count} unit="Asist." />
-                <StatCard label="MVP (G/A)" player={awards.topGA.name} value={awards.topGA.count} unit="Total" />
+                <StatCard label="Bota de Oro" player={awards.topScorer.name} team={awards.topScorer.team} value={awards.topScorer.count} unit="Goles" />
+                <StatCard label="Máx. Asistente" player={awards.topAssister.name} team={awards.topAssister.team} value={awards.topAssister.count} unit="Asist." />
+                <StatCard label="MVP (G/A)" player={awards.topGA.name} team={awards.topGA.team} value={awards.topGA.count} unit="Total" />
             </div>
         </div>
 
@@ -281,7 +284,7 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <Flag name={tournamentStats.minGA.name} size="w-8 h-5 shadow-sm" />
-                        <span className="font-black text-sm leading-none">{tournamentStats.minGA.name}</span>
+                        <span className="font-black text-sm leading-none text-center">{tournamentStats.minGA.name}</span>
                     </div>
                     <div className="mt-2 text-xs font-black bg-white inline-block px-2 py-0.5 rounded border border-green-100 text-green-800">
                         {tournamentStats.minGA.ga} Goles Encajados
@@ -295,7 +298,7 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <Flag name={awards.fairPlay} size="w-8 h-5 shadow-sm" />
-                        <span className="font-black text-sm leading-none">{awards.fairPlay}</span>
+                        <span className="font-black text-sm leading-none text-center">{awards.fairPlay}</span>
                     </div>
                     <div className="mt-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest">Premio Oficial</div>
                 </div>
@@ -307,7 +310,7 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <Flag name={tournamentStats.maxGA.name} size="w-8 h-5 shadow-sm" />
-                        <span className="font-black text-sm leading-none">{tournamentStats.maxGA.name}</span>
+                        <span className="font-black text-sm leading-none text-center">{tournamentStats.maxGA.name}</span>
                     </div>
                     <div className="mt-2 text-xs font-black bg-white inline-block px-2 py-0.5 rounded border border-red-100 text-red-800">
                         {tournamentStats.maxGA.ga} Goles Encajados
@@ -324,7 +327,8 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
       <style>{`
         @media print {
           @page { size: A4; margin: 0; }
-          body { background: white; -webkit-print-color-adjust: exact; }
+          body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          
           .print-container { position: absolute; top: 0; left: 0; width: 100%; }
           .no-print { display: none !important; }
           
@@ -335,9 +339,11 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
               height: 297mm; 
               margin: 0 auto; 
               background: white; 
-              overflow: hidden; 
-              page-break-after: auto; 
+              page-break-after: always; 
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact;
           }
+          .print-page:last-child { page-break-after: auto !important; }
         }
         
         @media screen {
@@ -355,74 +361,43 @@ export const PrintView = ({ groups, bracket, winner, thirdPlace, onBack, userNam
   );
 };
 
-// <--- CAMBIO NUEVO: Helper actualizado para formato (ET) (Pen X-Y)
-const getScore = (m) => {
-    if (m.scoreA === '' || m.scoreB === '') return '-';
-    let res = `${m.scoreA}-${m.scoreB}`;
-    if (m.isExtraTime) res += ' (ET)';
-    if (m.penA && m.penB) res += ` (Pen ${m.penA}-${m.penB})`;
-    return res;
+const MatchRowCompact = ({ m }) => {
+    const getScore = (m) => {
+        if (m.scoreA === '' || m.scoreB === '') return '-';
+        let res = `${m.scoreA}-${m.scoreB}`;
+        if (m.isExtraTime) res += ' (ET)';
+        if (m.penA && m.penB) res += ` (Pen ${m.penA}-${m.penB})`;
+        return res;
+    };
+    return (
+        <div className="flex justify-between items-center text-[9px] border-b border-dotted border-gray-200 pb-1">
+            <div className="flex items-center gap-1 w-[42%]"><Flag name={m.teamA?.name} size="w-3 h-2" /><span className={`truncate ${m.winner === m.teamA ? 'font-bold text-black' : 'text-gray-500'}`}>{m.teamA?.name || '-'}</span></div>
+            <div className="font-mono font-bold whitespace-nowrap">{getScore(m)}</div>
+            <div className="flex items-center justify-end gap-1 w-[42%]"><span className={`truncate ${m.winner === m.teamB ? 'font-bold text-black' : 'text-gray-500'}`}>{m.teamB?.name || '-'}</span><Flag name={m.teamB?.name} size="w-3 h-2" /></div>
+        </div>
+    );
 };
-
-const MatchRowCompact = ({ m }) => (
-    <div className="flex justify-between items-center text-[9px] border-b border-dotted border-gray-200 pb-1">
-        <div className="flex items-center gap-1 w-[42%]">
-            <Flag name={m.teamA?.name} size="w-3 h-2" />
-            <span className={`truncate ${m.winner === m.teamA ? 'font-bold text-black' : 'text-gray-500'}`}>{m.teamA?.name || '-'}</span>
-        </div>
-        <div className="font-mono font-bold whitespace-nowrap">{getScore(m)}</div>
-        <div className="flex items-center justify-end gap-1 w-[42%]">
-            <span className={`truncate ${m.winner === m.teamB ? 'font-bold text-black' : 'text-gray-500'}`}>{m.teamB?.name || '-'}</span>
-            <Flag name={m.teamB?.name} size="w-3 h-2" />
-        </div>
-    </div>
-);
 
 const MatchCard = ({ m, highlighted = false }) => (
     <div className={`border rounded p-2 flex justify-between items-center ${highlighted ? 'border-black bg-gray-50' : 'border-gray-200'}`}>
         <div className="flex flex-col gap-1 w-full">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <Flag name={m.teamA?.name} size="w-4 h-3 rounded-[1px]" />
-                    <span className={`text-[10px] ${m.winner === m.teamA ? 'font-bold' : 'font-medium text-gray-500'}`}>{m.teamA?.name || '-'}</span>
-                </div>
-                <span className="font-mono font-bold text-xs">{m.scoreA}</span>
-            </div>
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <Flag name={m.teamB?.name} size="w-4 h-3 rounded-[1px]" />
-                    <span className={`text-[10px] ${m.winner === m.teamB ? 'font-bold' : 'font-medium text-gray-500'}`}>{m.teamB?.name || '-'}</span>
-                </div>
-                <span className="font-mono font-bold text-xs">{m.scoreB}</span>
-            </div>
-            
-            {/* <--- CAMBIO NUEVO: Detalles Extra en Cards */}
-            {(m.isExtraTime || (m.penA && m.penB)) && (
-                <div className="text-[8px] text-center text-gray-500 font-mono mt-1 pt-1 border-t border-gray-100">
-                    {m.isExtraTime && <span>(ET) </span>}
-                    {m.penA && m.penB && <span>(Pen {m.penA}-{m.penB})</span>}
-                </div>
-            )}
+            <div className="flex justify-between items-center"><div className="flex items-center gap-2"><Flag name={m.teamA?.name} size="w-4 h-3 rounded-[1px]" /><span className={`text-[10px] ${m.winner === m.teamA ? 'font-bold' : 'font-medium text-gray-500'}`}>{m.teamA?.name || '-'}</span></div><span className="font-mono font-bold text-xs">{m.scoreA}</span></div>
+            <div className="flex justify-between items-center"><div className="flex items-center gap-2"><Flag name={m.teamB?.name} size="w-4 h-3 rounded-[1px]" /><span className={`text-[10px] ${m.winner === m.teamB ? 'font-bold' : 'font-medium text-gray-500'}`}>{m.teamB?.name || '-'}</span></div><span className="font-mono font-bold text-xs">{m.scoreB}</span></div>
+            {(m.isExtraTime || (m.penA && m.penB)) && (<div className="text-[8px] text-center text-gray-500 font-mono mt-1 pt-1 border-t border-gray-100">{m.isExtraTime && <span>(ET) </span>}{m.penA && m.penB && <span>(Pen {m.penA}-{m.penB})</span>}</div>)}
         </div>
     </div>
 );
 
-const AwardCard = ({ title, value }) => (
+const AwardCard = ({ title, data }) => (
     <div className="flex items-center justify-between p-3 border border-gray-100 rounded bg-white shadow-sm">
         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{title}</span>
-        <span className="text-sm font-black text-slate-900">{value || '-'}</span>
+        <div className="flex items-center gap-2">{data.team && <Flag name={data.team} size="w-4 h-3" />}<span className="text-sm font-black text-slate-900">{data.name || '-'}</span></div>
     </div>
 );
 
-const StatCard = ({ label, player, value, unit }) => (
+const StatCard = ({ label, player, team, value, unit }) => (
     <div className="flex items-center justify-between p-3 border-b border-gray-100">
-        <div>
-            <p className="text-[9px] font-bold text-gray-400 uppercase">{label}</p>
-            <p className="font-bold text-xs text-slate-900">{player || '-'}</p>
-        </div>
-        <div className="text-right">
-            <span className="text-lg font-black block leading-none">{value || '0'}</span>
-            <span className="text-[8px] text-gray-400 uppercase">{unit}</span>
-        </div>
+        <div><p className="text-[9px] font-bold text-gray-400 uppercase">{label}</p><div className="flex items-center gap-1.5">{team && <Flag name={team} size="w-3 h-2" />}<p className="font-bold text-xs text-slate-900">{player || '-'}</p></div></div>
+        <div className="text-right"><span className="text-lg font-black block leading-none">{value || '0'}</span><span className="text-[8px] text-gray-400 uppercase">{unit}</span></div>
     </div>
 );
